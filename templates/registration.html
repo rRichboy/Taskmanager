@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="../static/regstyles.css">
+</head>
+<body>
+<div class="container">
+    <div class="auth-form register-form">
+        <h1>Регистрация</h1>
+        <form action="/register" method="post">
+            <input type="text" id="username" name="username" placeholder="Имя пользователя" required>
+
+            <div class="password">
+                <input type="password" id="password" name="password" placeholder="Пароль" required>
+                <a href="#" class="password-control" onclick="return show_hide_password(this);"></a>
+                <input type="text" id="chat_id" name="chat_id" placeholder="Chat ID" required>
+            </div>
+
+            {% if error %}
+            <p class="error-message" id="error">{{ error }}</p>
+            {% endif %}
+            <button type="submit">Зарегистрироваться</button>
+        </form>
+        <p class="already-account">Уже есть аккаунт? <a href="/login">Войдите</a>.</p>
+    </div>
+</div>
+<script src="../static/regscript.js"></script>
+</body>
+</html>

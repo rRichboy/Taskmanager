@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="../static/regstyles.css">
+</head>
+<body>
+<div class="container">
+    <div class="auth-form login-form">
+        <h1>Вход</h1>
+        <form action="/login" method="post">
+            <input type="text" id="username" name="username" placeholder="Имя пользователя" required>
+            <div class="password">
+                <input type="password" id="password" name="password" placeholder="Пароль" required>
+                <a href="#" class="password-control" onclick="return show_hide_password(this);"></a>
+            </div>
+            {% if error1 %}
+            <p class="error-message" id="error1">{{ error1 }}</p>
+            {% endif %}
+            <button type="submit">Войти</button>
+        </form>
+        <p class="already-account">Если у вас нет аккаунта, <a href="/register">зарегистрируйтесь</a>.</p>
+    </div>
+</div>
+<script src="../static/regscript.js"></script>
+</body>
+</html>
