@@ -3,7 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const taskDate = document.getElementById('task-date');
     const taskColor = document.getElementById('task-color');
     const addTaskBtn = document.getElementById('add-task');
-    const taskList = document.getElementById('task-list');
+    const taskListActive = document.getElementById('task-list-active');
+    const taskListCompleted = document.getElementById('task-list-completed');
     const notification = document.getElementById('notification');
     const body = document.body;
     const toggleDarkModeBtn = document.getElementById('toggle-dark-mode');
@@ -30,7 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!task_text || !task_time || !color) {
             alert('Пожалуйста, заполните все поля');
             return;
+
         }
+        updateTaskListsVisibility();
 
         const taskItem = document.createElement('li');
         taskItem.className = 'task-item';
@@ -39,11 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
         taskItem.innerHTML = `
             <span>${task_text} - <small>${new Date(task_time).toLocaleString()}</small></span>
             <div>
+                <button class="complete-task"><i class="fas fa-check"></i></button>
                 <button class="delete-task"><i class="fas fa-trash-alt"></i></button>
             </div>
         `;
 
-        taskList.appendChild(taskItem);
+        taskListActive.appendChild(taskItem);
 
         const formData = new FormData();
         formData.append('task_text', task_text);
@@ -70,8 +74,29 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotification('Задача добавлена!');
     });
 
-    taskList.addEventListener('click', (e) => {
+    taskListActive.addEventListener('click', (e) => {
+        const completeButton = e.target.closest('.complete-task');
         const deleteButton = e.target.closest('.delete-task');
+
+        if (completeButton) {
+            e.preventDefault();
+            completeTask(completeButton);
+        }
+
+        if (deleteButton) {
+            e.preventDefault();
+            deleteTask(deleteButton);
+        }
+    });
+
+    taskListCompleted.addEventListener('click', (e) => {
+        const completeButton = e.target.closest('.complete-task');
+        const deleteButton = e.target.closest('.delete-task');
+
+        if (completeButton) {
+            e.preventDefault();
+            completeTask(completeButton);
+        }
 
         if (deleteButton) {
             e.preventDefault();
@@ -127,6 +152,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2000);
     }
 
+    const completedTasks = JSON.parse(localStorage.getItem('completedTasks')) || [];
+
+    function completeTask(completeButton) {
+        const taskItem = completeButton.closest('.task-item');
+        const taskId = taskItem.dataset.taskId;
+
+        taskItem.classList.toggle('done');
+
+        if (taskItem.classList.contains('done')) {
+            completedTasks.push(taskId);
+            showNotification('Задача завершена!');
+            taskListCompleted.appendChild(taskItem);
+        } else {
+            const index = completedTasks.indexOf(taskId);
+            if (index !== -1) {
+                completedTasks.splice(index, 1);
+            }
+            showNotification('Отмена завершения задачи');
+            taskListActive.appendChild(taskItem);
+        }
+
+        localStorage.setItem('completedTasks', JSON.stringify(completedTasks));
+        fetch(`/complete_task/${taskId}`, {
+            method: 'POST'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка при завершении задачи');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                showNotification('Произошла ошибка при завершении задачи', 'error');
+            });
+        updateTaskListsVisibility();
+    }
+
+    completedTasks.forEach(taskId => {
+        const taskItem = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
+        if (taskItem) {
+            taskItem.classList.add('done');
+            taskListCompleted.appendChild(taskItem);
+        }
+    })
+
     function deleteTask(deleteButton) {
         const taskItem = deleteButton.closest('.task-item');
         const taskId = taskItem.dataset.taskId;
@@ -143,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok) {
                     taskItem.remove();
                     showNotification(`Задача "${task_text}" удалена!`);
+                    updateTaskListsVisibility(); // Вызываем после успешного удаления
                 } else {
                     throw new Error('Ошибка удаления задачи');
                 }
@@ -152,4 +223,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 showNotification('Произошла ошибка при удалении задачи', 'error');
             });
     }
+
+
+    const searchInput = document.getElementById('search-input');
+    let highlightTimeout;
+
+    searchInput.addEventListener('input', () => {
+        const searchText = searchInput.value.toLowerCase();
+        const taskItems = document.querySelectorAll('.task-item');
+
+        taskItems.forEach(task => {
+            const taskText = task.querySelector('span').textContent.toLowerCase();
+            if (taskText.includes(searchText) && searchText !== '') {
+                task.classList.add('highlight');
+                clearTimeout(highlightTimeout);
+                highlightTimeout = setTimeout(() => {
+                    task.classList.remove('highlight');
+                }, 5000); // Удалить подсветку через 5 секунд
+            } else {
+                task.classList.remove('highlight');
+            }
+        });
+
+        if (searchText === '') {
+            taskItems.forEach(task => task.classList.remove('highlight'));
+        }
+    });
+
+    document.body.addEventListener('click', (event) => {
+        if (event.target !== searchInput && !searchInput.contains(event.target)) {
+            searchInput.blur();
+        }
+    });
+
+    function updateTaskListsVisibility() {
+        const activeTasksContainer = document.getElementById('task-list-active-container');
+        const completedTasksContainer = document.getElementById('task-list-completed-container');
+
+        const activeTasks = document.querySelectorAll('#task-list-active > .task-item');
+        const completedTasks = document.querySelectorAll('#task-list-completed > .task-item');
+
+        activeTasksContainer.style.display = activeTasks.length > 0 ? 'block' : 'none';
+        completedTasksContainer.style.display = completedTasks.length > 0 ? 'block' : 'none';
+    }
+
+    updateTaskListsVisibility();
+
 });

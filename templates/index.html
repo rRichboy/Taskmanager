@@ -22,6 +22,10 @@
         </div>
     </div>
     <h1>Планировщик задач</h1>
+    <div class="task-search">
+        <input type="text" id="search-input" placeholder="Поиск задач...">
+        <i class="fas fa-search search-icon"></i>
+    </div>
     <div class="task-input">
         <form id="task-form" method="POST" action="/add_task">
             <input type="text" name="task_text" id="task-input" placeholder="Введите задачу...">
@@ -31,18 +35,38 @@
             </button>
         </form>
     </div>
-    <ul id="task-list">
-        {% for task in tasks %}
-        <li class="task-item added" style="border-color: {{ task[3] }}" data-task-id="{{ task[0] }}">
-            <span>{{ task[1] }} - <small>{{ task[2].strftime("%Y-%m-%d %H:%M") }}</small></span>
-            <div>
-                <button class="delete-task"><i class="fas fa-trash-alt"></i></button>
+    <div>
+        <div id="task-list-active-container">
+            <h2>В работе</h2>
+            <ul id="task-list-active">
+                {% for task in tasks if not task[4] %}
+                <li class="task-item added" style="border-color: {{ task[3] }}" data-task-id="{{ task[0] }}">
+                    <span>{{ task[1] }} - <small>{{ task[2].strftime("%Y-%m-%d %H:%M") }}</small></span>
+                    <div>
+                        <button class="complete-task"><i class="fas fa-check"></i></button>
+                        <button class="delete-task"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div>
+            <div id="task-list-completed-container">
+                <h2>Завершенные</h2>
+                <ul id="task-list-completed">
+                    {% for task in tasks if task[4] %}
+                    <li class="task-item added" style="border-color: {{ task[3] }}" data-task-id="{{ task[0] }}">
+                        <span>{{ task[1] }} - <small>{{ task[2].strftime("%Y-%m-%d %H:%M") }}</small></span>
+                        <div>
+                            <button class="complete-task"><i class="fas fa-check"></i></button>
+                            <button class="delete-task"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
-        </li>
-        {% endfor %}
-    </ul>
-</div>
-<div id="notification" class="notification"></div>
-<script src="../static/script.js"></script>
+        </div>
+        <div id="notification" class="notification"></div>
+        <script src="../static/script.js"></script>
 </body>
 </html>

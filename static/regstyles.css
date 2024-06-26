@@ -74,8 +74,8 @@ body {
 }
 
 .already-account {
-    text-align: center; /* Выравнивание текста по центру */
-    margin-top: 20px; /* Отступ сверху для элемента */
+    text-align: center;
+    margin-top: 20px;
 }
 
 .already-account a {

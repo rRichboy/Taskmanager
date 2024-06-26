@@ -198,6 +198,19 @@ def check_tasks():
         asyncio.run(send_notification(user_id, task_text))
 
 
+@app.route('/complete_task/<int:task_id>', methods=['POST'])
+@login_required
+def complete_task(task_id):
+    user_id = session['user_id']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('UPDATE tasks SET completed = TRUE WHERE id = %s AND user_id = %s', (task_id, user_id))
+    conn.commit()
+    conn.close()
+
+    return redirect('/tasks')
+
+
 scheduler = BackgroundScheduler()
 scheduler.add_job(check_tasks, 'interval', minutes=1)
 scheduler.start()
